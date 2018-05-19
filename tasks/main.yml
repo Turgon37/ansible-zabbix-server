@@ -1,0 +1,45 @@
+---
+# tasks file for zabbix-server
+
+- name: Include the OS specific variables
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_lsb.id|d(ansible_distribution) }}.yml'
+        - '{{ ansible_os_family }}.yml'
+        - defaults.yml
+      skip: true
+  tags: ['always']
+
+- import_tasks: init.yml
+  tags: ['always']
+
+- import_tasks: install.yml
+  tags: ['zabbix-server', 'zabbix-server-install']
+
+- name: Run zabbix-common
+  import_role:
+    name: zabbix-common
+  vars:
+    zabbix_common__version: '{{ zabbix_server__version }}'
+    zabbix_common__packages_name: 'zabbix-server-{{ zabbix_server__database_type }}'
+    zabbix_common__service_name: '{{ zabbix_server__service_name }}'
+    zabbix_common__service_handler: restart-zabbix-server
+    zabbix_common__service_user: '{{ zabbix_server__service_user }}'
+    zabbix_common__service_group: '{{ zabbix_server__service_group }}'
+    zabbix_common__conf_directory: '{{ zabbix_server__conf_directory }}'
+    zabbix_common__var_directory: '{{ zabbix_server__var_directory }}'
+    zabbix_common__log_directory: '{{ zabbix_server__log_directory }}'
+    zabbix_common__install: '{{ not zabbix_server__install_from_source }}'
+  tags: ['zabbix-server', 'zabbix-server-install']
+
+- import_tasks: configure.yml
+  tags: ['zabbix-server', 'zabbix-server-configure']
+
+- import_tasks: service.yml
+  tags: ['zabbix-server', 'zabbix-server-service']
+
+- include_tasks: facts.yml
+  when: zabbix_server__facts|bool
+  tags: ['zabbix-server', 'zabbix-server-facts']

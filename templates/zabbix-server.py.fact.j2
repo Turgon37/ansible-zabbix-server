@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+import json
+import os
+import re
+import subprocess
+import sys
+
+zabbix_server_exec = '{{ zabbix_server__service_executable }}'
+
+content=dict()
+
+version_re = re.compile('zabbix_server\s+(Zabbix)\s+(?P<version>(?P<major>[0-9]+)[^ ]+)')
+try:
+    if not os.path.isfile(zabbix_server_exec):
+        content['error'] = 'executable {} does not exists'.format(zabbix_server_exec)
+    else:
+        result = subprocess.check_output([zabbix_server_exec, '--version'], universal_newlines=True)
+        match = version_re.search(result.strip())
+        if match:
+            content['version_full'] = match.group('version')
+            content['version_major'] = match.group('major')
+except subprocess.CalledProcessError as e:
+    content['error'] = str(e)
+
+if len(content) == 0:
+    content = None
+
+print(json.dumps(content))
+sys.exit(0)

@@ -1,0 +1,142 @@
+---
+# defaults file for zabbix-server
+
+# Simple placeholder to allow other roles to detect this role
+zabbix_server__role: True
+
+# Enable facts deploiement
+zabbix_server__facts: True
+
+# Which version to install (if it is possible) from repositories
+zabbix_server__version: 3.4
+
+# Specify here the full version you want if you install from source
+# The default is to choose the last "stable" one
+# Exemple: 3.4.8
+#zabbix_server__source_version: 3.4.8
+
+
+### SERVICE CONFIGURATION
+# ---------------------------------------
+# Name of zabbix service
+zabbix_server__service_name: zabbix-server
+zabbix_server__service_enabled: True
+
+# User to run zabbix as
+zabbix_server__service_user: zabbix
+# Group to run zabbix as
+zabbix_server__service_group: '{{ zabbix_server__service_user }}'
+
+# Path to service executable file
+zabbix_server__service_executable: "{{ zabbix_server__install_source_executable if zabbix_server__install_from_source else '/usr/sbin/zabbix_server' }}"
+
+# Path to pidfile
+zabbix_server__service_pidfile: /run/zabbix/zabbix_server.pid
+
+# File that contains environment variables for service unit
+#zabbix_server__service_environment:
+
+# Set to yes to deploy and override systemd service configuration
+zabbix_server__service_configure_systemd: '{{ zabbix_server__install_from_source }}'
+
+
+### INSTALL CONFIGURATION
+# ---------------------------------------
+# Which database type to use in 'mysql', 'pgsql'
+#zabbix_server__database_type:
+
+##
+# If True, zabbix server will be compiled from sources
+zabbix_server__install_from_source: False
+
+# List of feature and their default status
+zabbix_server__source_features_defaults:
+  'enable-java': True
+  'with-jabber': True
+  'with-ldap':   True
+  'with-libcurl': True
+  'with-libevent': True
+  'with-libpcre': True
+  'with-libxml2': True
+  'with-mysql': "{{ zabbix_server__database_type == 'mysql' }}"
+  'with-net-snmp': True
+  'with-openipmi': True
+  'with-postgresql': "{{ zabbix_server__database_type == 'pgsql' }}"
+  'with-ssh2': True
+
+# Dict of overriding feature status
+# Use this dict to edit feature status
+zabbix_server__source_features_override: {}
+
+# Final dict of feature to use during compilation
+zabbix_server__source_features: '{{ zabbix_server__source_features_defaults|combine(zabbix_server__source_features_override) }}'
+
+# List of package to install per feature if it is enabled
+zabbix_server__source_packages_names_per_features:
+  'enable-java':
+    - openjdk-8-jdk-headless
+  'with-jabber':
+    - libiksemel-dev
+    - libiksemel3
+  'with-ldap':
+    - libldap-2.4-2
+    - libldap2-dev
+  'with-libcurl':
+    - libcurl4-openssl-dev
+  'with-libevent':
+    - libevent-dev
+  'with-libpcre':
+    - libpcre3-dev
+  'with-libxml2':
+    - libxml2
+    - libxml2-dev
+  'with-mysql':
+    - libmariadbd18
+    - libmariadbd-dev
+  'with-net-snmp':
+    - libsnmp-dev
+  'with-openipmi':
+    - libopenipmi-dev
+  'with-postgresql': []
+  'with-ssh2':
+    - libssh2-1
+    - libssh2-1-dev
+
+# Directory where to download and compile sources
+zabbix_server__install_source_directory: /opt/zabbix-server
+
+# Installation path of the main binary
+# This is not editable, it is managed by makefile
+zabbix_server__install_source_executable: /usr/local/sbin/zabbix_server
+
+# URL template to download source
+# use the key _zabbix_server__full_version to replace version string
+zabbix_server__install_source_url: 'https://sourceforge.net/projects/zabbix/files/ZABBIX%20Latest%20Stable/{{ _zabbix_server__full_version }}/zabbix-{{ _zabbix_server__full_version }}.tar.gz/download'
+
+# Command to run to configure sources
+zabbix_server__install_source_configure_command: './configure {{ zabbix_server__install_source_configure_options }}'
+zabbix_server__install_source_configure_options: >
+  --enable-server
+  --enable-ipv6
+  {% for name, status in zabbix_server__source_features|dictsort if status|bool %} --{{ name }}{% endfor -%}
+
+# Command to run to compile sources
+zabbix_server__install_source_compile_command: make
+
+# Command to run to install sources
+zabbix_server__install_source_install_command: make install
+
+# Command to run to clean workspace when selected features changed
+zabbix_server__install_source_clean_command: make clean && rm Makefile
+
+
+# Configuration directory
+zabbix_server__conf_directory: /etc/zabbix
+# Location of var directory for zabbix
+zabbix_server__var_directory: /var/lib/zabbix
+# Location of logs for zabbix
+zabbix_server__log_directory: /var/log/zabbix
+
+# Main configuration file
+zabbix_server__conf_file: '{{ zabbix_server__conf_directory }}/zabbix_server.conf'
+

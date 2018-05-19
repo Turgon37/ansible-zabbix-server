@@ -1,0 +1,30 @@
+---
+
+- name: Install zabbix server.service systemd unit file
+  template:
+    src:   zabbix-server.service.j2
+    dest:  "/etc/systemd/system/{{ zabbix_server__service_name }}.service"
+    owner: root
+    group: root
+    mode:  0755
+  when: ansible_service_mgr == 'systemd' and zabbix_server__service_configure_systemd|bool
+  register: _zabbix_server__service
+  notify: [ 'restart-zabbix-server' ]
+
+- name: Remove sysvinit unit file
+  file:
+    path:  /etc/init.d/zabbix-server
+    state: absent
+  when: ansible_service_mgr == 'systemd' and zabbix_server__service_configure_systemd|bool
+  notify: [ 'restart-zabbix-server' ]
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+  when: ansible_service_mgr == 'systemd' and _zabbix_server__service is changed
+
+- name: Ensure zabbix server is started and enabled on boot
+  service:
+    name:    '{{ zabbix_server__service_name }}'
+    enabled: '{{ zabbix_server__service_enabled|bool }}'
+    state:   "{{ zabbix_server__service_enabled|bool|ternary('started', 'stopped') }}"

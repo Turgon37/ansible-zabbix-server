@@ -1,0 +1,11 @@
+---
+
+- name: Install zabbix-server environment file
+  template:
+    src:   zabbix-server.environment.j2
+    dest:  '{{ zabbix_server__service_environment }}'
+    owner: root
+    group: root
+    mode:  0644
+  when: zabbix_server__service_environment is defined
+  notify: [ 'restart-zabbix-server' ]

@@ -1,0 +1,6 @@
+---
+
+- name: Assert required variables
+  assert:
+    that:
+      - zabbix_server__database_type is defined and zabbix_server__database_type in ['mysql', 'pgsql']

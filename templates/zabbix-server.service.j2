@@ -1,0 +1,21 @@
+[Unit]
+Description=Zabbix Server
+After=syslog.target
+After=network.target
+
+[Service]
+Environment="CONFFILE={{ zabbix_server__conf_file }}"
+{% if zabbix_server__service_environment is defined %}
+EnvironmentFile=-{{ zabbix_server__service_environment }}
+{% endif %}
+Type=forking
+Restart=on-failure
+PIDFile={{ zabbix_server__service_pidfile }}
+KillMode=control-group
+ExecStart={{ zabbix_server__service_executable }} --config $CONFFILE
+ExecStop=/bin/kill -SIGTERM $MAINPID
+RestartSec=10s
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
