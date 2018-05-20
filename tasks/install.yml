@@ -1,5 +1,11 @@
 ---
 
+- name: Install required packages
+  package:
+    name:  '{{ item }}'
+    state: present
+  with_items: '{{ zabbix_server__required_packages_names }}'
+
 - name: Include source compilation tasks
   include_tasks: install-source.yml
   when: zabbix_server__install_from_source|bool

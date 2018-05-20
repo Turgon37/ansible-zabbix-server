@@ -1,0 +1,19 @@
+---
+
+- name:
+  shell: >
+    (
+      (   /usr/bin/env test -f {{ item }} && cat {{ item }} ) ||
+      (   /usr/bin/env test -f {{ item }}.gz && zcat {{ item }} ) ||
+      exit 1
+    )
+    | /usr/bin/env mysql
+    --host={{ zabbix_server__db_host }}
+    {% if zabbix_server__db_user is defined %}--user={{ zabbix_server__db_user }}{% endif %}
+    {% if zabbix_server__db_password is defined %}--password={{ zabbix_server__db_password }}{% endif %}
+    --batch --skip-column-names
+    {{ zabbix_server__db_name }}
+  with_items:
+    - '{{ zabbix_server__database_init_directory_map[zabbix_server__database_type] }}/schema.sql'
+    - '{{ zabbix_server__database_init_directory_map[zabbix_server__database_type] }}/images.sql'
+    - '{{ zabbix_server__database_init_directory_map[zabbix_server__database_type] }}/data.sql'

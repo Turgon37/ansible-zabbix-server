@@ -1,5 +1,17 @@
 ---
 
+- name: Create directories
+  file:
+    path:  '{{ item }}'
+    owner: root
+    group: root
+    mode:  0755
+    state: directory
+  with_items:
+    - '{{ zabbix_server__custom_scripts_directory }}'
+    - '{{ zabbix_server__alert_scripts_path }}'
+    - '{{ zabbix_server__external_scripts }}'
+
 - name: Install zabbix-server environment file
   template:
     src:   zabbix-server.environment.j2
@@ -9,3 +21,38 @@
     mode:  0644
   when: zabbix_server__service_environment is defined
   notify: [ 'restart-zabbix-server' ]
+
+- name: Update main configuration file
+  template:
+    src:   zabbix_server.conf.j2
+    dest:  '{{ zabbix_server__configuration_file }}'
+    owner: '{{ zabbix_server__service_user }}'
+    group: '{{ zabbix_server__service_group }}'
+    mode:  0640
+  notify: [ 'restart-zabbix-server' ]
+
+## Mysql
+
+- name: Check if mysql database is initialized
+  command: >
+    /usr/bin/env mysql
+    --host={{ zabbix_server__db_host }}
+    {% if zabbix_server__db_user is defined %}--user={{ zabbix_server__db_user }}{% endif %}
+    {% if zabbix_server__db_password is defined %}--password={{ zabbix_server__db_password }}{% endif %}
+    --batch --skip-column-names
+    --execute="SHOW TABLES FROM `{{ zabbix_server__db_name }}` LIKE '%users%'"
+  when: zabbix_server__database_type == 'mysql'
+  register: _zabbix_server__database_installation_status
+  changed_when: False
+  check_mode: False
+
+- name:
+  set_fact:
+    _zabbix_server__database_need_install: '{{ _zabbix_server__database_installation_status.stdout|length == 0 }}'
+  when: zabbix_server__database_type == 'mysql'
+
+## Databases
+
+- name: Initialize the database
+  include_tasks: 'configure-database-{{ zabbix_server__database_type }}.yml'
+  when: _zabbix_server__database_need_install|bool

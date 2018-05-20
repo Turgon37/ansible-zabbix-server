@@ -1,0 +1,233 @@
+#
+# {{ ansible_managed }}
+#
+
+
+############ GENERAL PARAMETERS #################
+PidFile={{ zabbix_server__service_pidfile }}
+{% for item in zabbix_server__conf_includes %}
+Include={{ item if zabbix_server__version is version_compare(2.4, '>=') else item|replace('/*.conf','') }}
+{% endfor %}
+
+##### Directories #####
+SocketDir={{ zabbix_server__service_socket_dir }}
+TmpDir={{ zabbix_server__tmp_dir }}
+
+AlertScriptsPath={{ zabbix_server__alert_scripts_path }}
+ExternalScripts={{ zabbix_server__external_scripts }}
+
+FpingLocation={{ zabbix_server__fping_location }}
+Fping6Location={{ zabbix_server__fping6_location }}
+
+{% if zabbix_server__version is version_compare('2.2.0', '>=') %}
+AllowRoot=0
+{% endif %}
+{% if zabbix_server__version is version_compare(2.4, '>=') %}
+User={{ zabbix_server__service_user }}
+{% endif %}
+
+##### Logs #####
+{% if zabbix_server__version is version_compare(3.0, '>=') %}
+LogType={{ zabbix_server__log_type }}
+{% endif %}
+{% if zabbix_server__log_type == 'file' %}
+LogFile={{ zabbix_server__log_file }}
+LogFileSize={{ zabbix_server__log_size|int }}
+{% endif %}
+{% if zabbix_server__version is version_compare('1.8.2', '>=') %}
+LogSlowQueries={{ zabbix_server__log_slow_queries|int }}
+{% endif %}
+DebugLevel={{ zabbix_server__debug_level|int }}
+
+
+############ NETWORK PARAMETERS #################
+ListenPort={{ zabbix_server__listen_port|int }}
+ListenIP={{ zabbix_server__listen_ip if zabbix_server__listen_ip is string else zabbix_server__listen_ip|join(',') }}
+{% if zabbix_server__source_ip is defined %}
+SourceIP={{ zabbix_server__source_ip }}
+{% endif %}
+
+
+############ DATABASE PARAMETERS #################
+DBHost={{ zabbix_server__db_host }}
+{% if zabbix_server__db_socket is defined %}
+DBSocket={{ zabbix_server__db_socket }}
+{% endif %}
+{% if zabbix_server__db_port is defined %}
+DBPort={{ zabbix_server__db_port|int }}
+{% endif %}
+DBName={{ zabbix_server__db_name }}
+DBSchema={{ zabbix_server__db_schema }}
+{% if zabbix_server__db_user is defined %}
+DBUser={{ zabbix_server__db_user }}
+{% endif %}
+{% if zabbix_server__db_password is defined %}
+DBPassword={{ zabbix_server__db_password }}
+{% endif %}
+
+
+############ SERVER PARAMETERS #################
+Timeout={{ zabbix_server__timeout|int }}
+
+UnreachablePeriod={{ zabbix_server__unreachable_period|int }}
+UnavailableDelay={{ zabbix_server__unavailable_delay|int }}
+UnreachableDelay={{ zabbix_server__unreachable_delay|int }}
+
+HousekeepingFrequency={{ zabbix_server__housekeeping_frequency|int }}
+MaxHousekeeperDelete={{ zabbix_server__max_housekeeper_delete|int }}
+
+##### Caches #####
+CacheSize={{ zabbix_server__cache_size }}
+CacheUpdateFrequency={{ zabbix_server__cache_update_frequency|int }}
+
+HistoryCacheSize={{ zabbix_server__history_cache_size }}
+HistoryIndexCacheSize={{ zabbix_server__history_index_cache_size }}
+
+TrendCacheSize={{ zabbix_server__trend_cache_size }}
+ValueCacheSize={{ zabbix_server__value_cache_size }}
+
+
+############ POLLERS PARAMETERS #################
+StartPollers={{ zabbix_server__start_pollers|int }}
+StartIPMIPollers={{ zabbix_server__start_ipmi_pollers|int }}
+StartPreprocessors={{ zabbix_server__start_preprocessors|int }}
+StartPollersUnreachable={{ zabbix_server__start_pollers_unreachable|int }}
+StartTrappers={{ zabbix_server__start_trappers|int }}
+StartPingers={{ zabbix_server__start_pingers|int }}
+StartDiscoverers={{ zabbix_server__start_discoverers|int }}
+StartHTTPPollers={{ zabbix_server__start_http_pollers|int }}
+{% if zabbix_server__version is version_compare(2.2, '>=') %}
+StartTimers={{ zabbix_server__start_timers|int }}
+{% endif %}
+{% if zabbix_server__version is version_compare(3.0, '>=') %}
+StartEscalators={{ zabbix_server__start_escalators|int }}
+{% endif %}
+
+{% if zabbix_server__version is version_compare(2.0, '>=') %}
+StartJavaPollers={{ zabbix_server__start_java_pollers|int }}
+{%   if zabbix_server__start_java_pollers|int > 0 %}
+JavaGateway={{ zabbix_server__java_gateway }}
+JavaGatewayPort={{ zabbix_server__java_gateway_port|int }}
+{%   endif %}
+{% endif %}
+
+{% if zabbix_server__version is version_compare(2.0, '>=') %}
+StartSNMPTrapper={{ zabbix_server__start_snmp_trapper|int }}
+{%   if zabbix_server__start_snmp_trapper|int > 0 %}
+SNMPTrapperFile={{ zabbix_server__snmp_trapper_file }}
+TrapperTimeout={{ zabbix_server__trapper_timeout|int }}
+ListenIP={{ zabbix_server__listen_ip }}
+{%   endif %}
+{% endif %}
+
+{% if zabbix_server__version is version_compare(2.2, '>=') %}
+StartVMwareCollectors={{ zabbix_server__start_vmware_collectors|int }}
+{%   if zabbix_server__start_vmware_collectors|int > 0 %}
+VMwareFrequency={{ zabbix_server__vmware_frequency|int }}
+VMwarePerfFrequency={{ zabbix_server__vmware_perf_frequency|int }}
+VMwareCacheSize={{ zabbix_server__vmware_cache_size }}
+VMwareTimeout={{ zabbix_server__vmware_timeout|int }}
+{%   endif %}
+{% endif %}
+
+{% if zabbix_server__version is version_compare('1.8.3', '>=') %}
+StartProxyPollers={{ zabbix_server__start_proxy_pollers|int }}
+ProxyConfigFrequency={{ zabbix_server__proxy_config_frequency|int }}
+ProxyDataFrequency={{ zabbix_server__proxy_data_frequency|int }}
+{% endif %}
+
+{% if zabbix_server__version is version_compare('1.8.3', '>=') %}
+StartDBSyncers={{ zabbix_server__start_dbsyncers|int }}
+{% endif %}
+
+
+
+{% if False %}
+### Option: HistoryStorageURL
+#	History storage HTTP[S] URL.
+# HistoryStorageURL=
+
+### Option: HistoryStorageTypes
+#	Comma separated list of value types to be sent to the history storage.
+#
+# Mandatory: no
+# Default:
+# HistoryStorageTypes=uint,dbl,str,log,text
+
+
+
+
+
+
+
+### Option: SSHKeyLocation
+#	Location of public and private keys for SSH checks and actions.
+# SSHKeyLocation=
+
+### Option: SSLCertLocation
+#	Location of SSL client certificates.
+#	This parameter is used only in web monitoring.
+# SSLCertLocation=${datadir}/zabbix/ssl/certs
+
+### Option: SSLKeyLocation
+#	Location of private keys for SSL client certificates.
+#	This parameter is used only in web monitoring.
+# SSLKeyLocation=${datadir}/zabbix/ssl/keys
+
+### Option: SSLCALocation
+#	Override the location of certificate authority (CA) files for SSL server certificate verification.
+#	If not set, system-wide directory will be used.
+#	This parameter is used only in web monitoring and SMTP authentication.
+# SSLCALocation=
+
+####### LOADABLE MODULES #######
+
+### Option: LoadModulePath
+#	Full path to location of server modules.
+#	Default depends on compilation options.
+#
+# Mandatory: no
+# Default:
+# LoadModulePath=${libdir}/modules
+
+### Option: LoadModule
+#	Module to load at server startup. Modules are used to extend functionality of the server.
+#	Format: LoadModule=<module.so>
+#	The modules must be located in directory specified by LoadModulePath.
+#	It is allowed to include multiple LoadModule parameters.
+#
+# Mandatory: no
+# Default:
+# LoadModule=
+
+####### TLS-RELATED PARAMETERS #######
+
+### Option: TLSCAFile
+#	Full pathname of a file containing the top-level CA(s) certificates for
+#	peer certificate verification.
+#
+# Mandatory: no
+# Default:
+# TLSCAFile=
+
+### Option: TLSCRLFile
+#	Full pathname of a file containing revoked certificates.
+#
+# Mandatory: no
+# Default:
+# TLSCRLFile=
+
+### Option: TLSCertFile
+#	Full pathname of a file containing the server certificate or certificate chain.
+#
+# Mandatory: no
+# Default:
+# TLSCertFile=
+
+### Option: TLSKeyFile
+#	Full pathname of a file containing the server private key.
+#
+# Mandatory: no
+# Default:
+# TLSKeyFile=
+{% endif %}

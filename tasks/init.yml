@@ -3,4 +3,41 @@
 - name: Assert required variables
   assert:
     that:
+      - zabbix_server__version is defined
       - zabbix_server__database_type is defined and zabbix_server__database_type in ['mysql', 'pgsql']
+      - zabbix_server__log_type in ['file', 'system', 'console']
+      - 0 <= zabbix_server__log_size and zabbix_server__log_size <= 1024
+      - 1 <= zabbix_server__log_slow_queries and zabbix_server__log_slow_queries <= 3600000
+      - 0 <= zabbix_server__debug_level and zabbix_server__debug_level <= 5
+      - 1024 <= zabbix_server__listen_port and zabbix_server__listen_port <= 32767
+      - zabbix_server__db_name is defined
+      - 0 <= zabbix_server__start_pollers and zabbix_server__start_pollers <= 1000
+      - 0 <= zabbix_server__start_ipmi_pollers and zabbix_server__start_ipmi_pollers <= 1000
+      - 1 <= zabbix_server__start_preprocessors and zabbix_server__start_preprocessors <= 1000
+      - 0 <= zabbix_server__start_pollers_unreachable and zabbix_server__start_pollers_unreachable <= 1000
+      - 0 <= zabbix_server__start_trappers and zabbix_server__start_trappers <= 1000
+      - 0 <= zabbix_server__start_pingers and zabbix_server__start_pingers <= 1000
+      - 0 <= zabbix_server__start_discoverers and zabbix_server__start_discoverers <= 250
+      - 0 <= zabbix_server__start_http_pollers and zabbix_server__start_http_pollers <= 1000
+      - 1 <= zabbix_server__start_timers and zabbix_server__start_timers <= 1000
+      - 0 <= zabbix_server__start_escalators and zabbix_server__start_escalators <= 100
+      - 0 <= zabbix_server__start_alerters and zabbix_server__start_alerters <= 100
+      - 0 <= zabbix_server__start_java_pollers and zabbix_server__start_java_pollers <= 1000
+      - 1024 <= zabbix_server__java_gateway_port and zabbix_server__java_gateway_port <= 32767
+      - zabbix_server__start_snmp_trapper in [0, 1]
+      - 0 <= zabbix_server__start_vmware_collectors and zabbix_server__start_vmware_collectors <= 250
+      - 10 <= zabbix_server__vmware_frequency and zabbix_server__vmware_frequency <= 86400
+      - 10 <= zabbix_server__vmware_perf_frequency and zabbix_server__vmware_perf_frequency <= 86400
+      - 1 <= zabbix_server__vmware_timeout and zabbix_server__vmware_timeout <= 300
+      - 0 <= zabbix_server__start_proxy_pollers and zabbix_server__start_proxy_pollers <= 250
+      - 1 <= zabbix_server__proxy_config_frequency and zabbix_server__proxy_config_frequency <= 3600*24*7
+      - 1 <= zabbix_server__proxy_data_frequency and zabbix_server__proxy_data_frequency <= 3600
+      - 1 <= zabbix_server__start_dbsyncers and zabbix_server__start_dbsyncers <= 100
+      - 1 <= zabbix_server__timeout and zabbix_server__timeout <= 30
+      - 1 <= zabbix_server__unreachable_period and zabbix_server__unreachable_period <= 3600
+      - 1 <= zabbix_server__unavailable_delay and zabbix_server__unavailable_delay <= 3600
+      - 1 <= zabbix_server__unreachable_delay and zabbix_server__unreachable_delay <= 3600
+      - 0 <= zabbix_server__housekeeping_frequency and zabbix_server__housekeeping_frequency <= 24
+      - 0 <= zabbix_server__max_housekeeper_delete and zabbix_server__max_housekeeper_delete <= 1000000
+      - 1 <= zabbix_server__trapper_timeout and zabbix_server__trapper_timeout <= 300
+      - 1 <= zabbix_server__cache_update_frequency and zabbix_server__cache_update_frequency <= 3600
