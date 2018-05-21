@@ -116,7 +116,6 @@ StartSNMPTrapper={{ zabbix_server__start_snmp_trapper|int }}
 {%   if zabbix_server__start_snmp_trapper|int > 0 %}
 SNMPTrapperFile={{ zabbix_server__snmp_trapper_file }}
 TrapperTimeout={{ zabbix_server__trapper_timeout|int }}
-ListenIP={{ zabbix_server__listen_ip }}
 {%   endif %}
 {% endif %}
 

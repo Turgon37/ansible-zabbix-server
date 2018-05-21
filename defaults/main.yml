@@ -227,6 +227,11 @@ zabbix_server__debug_level: 3
 #   Agent will listen on this port for connections from the server.
 zabbix_server__listen_port: 10051
 
+# ListenIP
+# List of comma delimited IP addresses that the trapper should listen on.
+# Trapper will listen on all network interfaces if this parameter is missing.
+zabbix_server__listen_ip: 0.0.0.0
+
 # SourceIP
 #   Source IP address for outgoing connections.
 #zabbix_server__source_ip:
@@ -422,11 +427,6 @@ zabbix_server__snmp_trapper_file: '/tmp/zabbix_traps.tmp'
 # TrapperTimeout
 #   Specifies how many seconds trapper may spend processing new data.
 zabbix_server__trapper_timeout: 300
-
-# ListenIP
-# List of comma delimited IP addresses that the trapper should listen on.
-# Trapper will listen on all network interfaces if this parameter is missing.
-zabbix_server__listen_ip: 0.0.0.0
 
 ##### VMWare collectors #####
 # StartVMwareCollectors
