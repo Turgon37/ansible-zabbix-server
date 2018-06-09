@@ -50,7 +50,7 @@
 - name: Save feature into a file to detect changes
   copy:
     dest:    '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}/ansible_features.json'
-    content: '{{ zabbix_server__source_features|to_json }}'
+    content: '{{ zabbix_server__source_features|dictsort|to_json }}'
   register: _zabbix_server__features
   tags: ['zabbix-server', 'zabbix-server-install']
 

@@ -50,8 +50,12 @@ zabbix_server__service_configure_systemd: '{{ zabbix_server__install_from_source
 zabbix_server__required_packages_names:
   - fping
   - nmap
+  - python-setuptools
   - snmp
   - traceroute
+
+zabbix_server__required_pip_packages_names:
+  - zabbix-api
 
 ##
 # If True, zabbix server will be compiled from sources
