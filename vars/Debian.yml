@@ -1,0 +1,4 @@
+---
+
+zabbix_server__fping_location: /usr/bin/fping
+zabbix_server__fping6_location: /usr/bin/fping6

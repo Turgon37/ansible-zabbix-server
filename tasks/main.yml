@@ -19,7 +19,7 @@
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - name: Run zabbix-common
-  import_role:
+  include_role:
     name: zabbix-common
   vars:
     zabbix_common__version: '{{ zabbix_server__version }}'

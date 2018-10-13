@@ -44,7 +44,7 @@ zabbix_server__service_configure_systemd: '{{ zabbix_server__install_from_source
 ### INSTALL CONFIGURATION
 # ---------------------------------------
 # Which database type to use in 'mysql', 'pgsql'
-#zabbix_server__database_type:
+# zabbix_server__database_type:
 
 # List of required packages to install
 zabbix_server__required_packages_names:
@@ -59,22 +59,22 @@ zabbix_server__required_pip_packages_names:
 
 ##
 # If True, zabbix server will be compiled from sources
-zabbix_server__install_from_source: False
+zabbix_server__install_from_source: false
 
 # List of feature and their default status
 zabbix_server__source_features_defaults:
-  'enable-java': True
-  'with-jabber': True
-  'with-ldap':   True
-  'with-libcurl': True
-  'with-libevent': True
-  'with-libpcre': True
-  'with-libxml2': True
+  'enable-java': true
+  'with-jabber': true
+  'with-ldap': true
+  'with-libcurl': true
+  'with-libevent': true
+  'with-libpcre': true
+  'with-libxml2': true
   'with-mysql': "{{ zabbix_server__database_type == 'mysql' }}"
-  'with-net-snmp': True
-  'with-openipmi': True
+  'with-net-snmp': true
+  'with-openipmi': true
   'with-postgresql': "{{ zabbix_server__database_type == 'pgsql' }}"
-  'with-ssh2': True
+  'with-ssh2': true
 
 # Dict of overriding feature status
 # Use this dict to edit feature status
@@ -139,7 +139,7 @@ zabbix_server__install_source_compile_command: make
 zabbix_server__install_source_install_command: make install
 
 # Command to run to clean workspace when selected features changed
-zabbix_server__install_source_clean_command: make clean && rm Makefile
+zabbix_server__install_source_clean_command: '! test -f Makefile || (make clean && rm Makefile)'
 
 # Configuration directory
 zabbix_server__conf_directory: /etc/zabbix
@@ -153,8 +153,8 @@ zabbix_server__configuration_file: '{{ zabbix_server__conf_directory }}/zabbix_s
 
 # Mapping of directory which contains database fixture
 zabbix_server__database_init_directory_map:
-  mysql: /usr/share/zabbix-server-mysql/
-  pgsql: /usr/share/zabbix-server-pgsql/
+  mysql: /usr/share/zabbix-server-mysql
+  pgsql: /usr/share/zabbix-server-pgsql
 
 # Where to place zabbix custom scripts
 zabbix_server__custom_scripts_directory: /opt/zabbix-server-scripts

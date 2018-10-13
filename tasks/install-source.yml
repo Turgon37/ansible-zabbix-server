@@ -3,10 +3,14 @@
 - name: Fetch last stable version from zabbix project
   uri:
     url: https://sourceforge.net/projects/zabbix/best_release.json
-    return_content: yes
+    return_content: true
   when: zabbix_server__version is not defined
   register: _zabbix_server__project_release
-  check_mode: False
+  until: _zabbix_server__project_release is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+  delegate_to: localhost
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - fail:
@@ -22,34 +26,55 @@
 
 - name: Install required packages
   package:
-    name:  '{{ item.value }}'
+    name: '{{ item.value }}'
     state: present
   with_dict: '{{ zabbix_server__source_packages_names_per_features }}'
-  when: zabbix_server__source_features[item.key]|d(False)
+  when: zabbix_server__source_features[item.key]|d(false)
+  tags: ['zabbix-server', 'zabbix-server-install']
+
+## Sources
+
+- name: Download source to local folder
+  get_url:
+    url: '{{ zabbix_server__install_source_url }}'
+    dest: '/tmp/zabbix_server-{{ _zabbix_server__full_version }}.tar.gz'
+  register: _zabbix_server__download_sources
+  until: _zabbix_server__download_sources is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+  delegate_to: localhost
+  tags: ['zabbix-server', 'zabbix-server-install']
+
+- name: Upload sources to server
+  copy:
+    src: '/tmp/zabbix_server-{{ _zabbix_server__full_version }}.tar.gz'
+    dest: '/tmp/zabbix_server-{{ _zabbix_server__full_version }}.tar.gz'
+  check_mode: false
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - name: Ensure source directory
   file:
-    path:  '{{ zabbix_server__install_source_directory }}'
+    path: '{{ zabbix_server__install_source_directory }}'
     owner: root
     group: root
     state: directory
   tags: ['zabbix-server', 'zabbix-server-install']
 
-## Compilation
-
-- name: Download sources
+- name: Extract sources
   unarchive:
-    src:        '{{ zabbix_server__install_source_url }}'
-    dest:       '{{ zabbix_server__install_source_directory }}'
-    remote_src: True
+    src: '/tmp/zabbix_server-{{ _zabbix_server__full_version }}.tar.gz'
+    dest: '{{ zabbix_server__install_source_directory }}'
+    remote_src: true
   args:
     creates: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
   tags: ['zabbix-server', 'zabbix-server-install']
 
+## Compilation
+
 - name: Save feature into a file to detect changes
   copy:
-    dest:    '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}/ansible_features.json'
+    dest: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}/ansible_features.json'
     content: '{{ zabbix_server__source_features|dictsort|to_json }}'
   register: _zabbix_server__features
   tags: ['zabbix-server', 'zabbix-server-install']
@@ -57,57 +82,57 @@
 - name: Clean build on feature changes
   shell: '{{ zabbix_server__install_source_clean_command }}'
   args:
-    chdir:   '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
+    chdir: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
   when: _zabbix_server__features is changed
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - name: Configure sources
   command: "{{ ansible_check_mode|ternary('/usr/bin/env echo ', '') }}{{ zabbix_server__install_source_configure_command }}"
   args:
-    chdir:   '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
+    chdir: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
     creates: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}/Makefile'
-  check_mode: False
+  check_mode: false
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - name: Compile source
   command: "{{ ansible_check_mode|ternary('/usr/bin/env echo ', '') }}{{ zabbix_server__install_source_compile_command }}"
   args:
-    chdir:   '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
+    chdir: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
     creates: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}/src/zabbix_server/zabbix_server'
-  check_mode: False
+  check_mode: false
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - name: Install binaries
   command: "{{ ansible_check_mode|ternary('/usr/bin/env echo ', '') }}{{ zabbix_server__install_source_install_command }}"
   args:
-    chdir:   '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
+    chdir: '{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}'
     creates: '{{ zabbix_server__install_source_executable }}'
-  check_mode: False
+  check_mode: false
   tags: ['zabbix-server', 'zabbix-server-install']
 
 ## Install database inits scripts
 
 - name: Ensure database init directory exists
   file:
-    path:  '{{ zabbix_server__database_init_directory_map[zabbix_server__database_type] }}'
+    path: '{{ zabbix_server__database_init_directory_map[zabbix_server__database_type] }}'
     owner: root
     group: root
-    mode:  0755
+    mode: 0755
     state: directory
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - name: List files in local source folder
   find:
-    path:      "{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}/database/{{ {'psql': 'postgresql'}[zabbix_server__database_type]|d(zabbix_server__database_type) }}/"
+    path: "{{ zabbix_server__install_source_directory }}/zabbix-{{ _zabbix_server__full_version }}/database/{{ {'psql': 'postgresql'}[zabbix_server__database_type]|d(zabbix_server__database_type) }}"
     file_type: file
   register: _zabbix_server_database_init_files
   tags: ['zabbix-server', 'zabbix-server-install']
 
 - name: Copy database init scripts
   copy:
-    src:        "{{ item.path }}"
-    dest:       '{{ zabbix_server__database_init_directory_map[zabbix_server__database_type] }}'
-    mode:       0644
-    remote_src: yes
+    src: '{{ item.path }}'
+    dest: '{{ zabbix_server__database_init_directory_map[zabbix_server__database_type] }}'
+    mode: 0644
+    remote_src: true
   with_items: '{{ _zabbix_server_database_init_files.files }}'
   tags: ['zabbix-server', 'zabbix-server-install']
